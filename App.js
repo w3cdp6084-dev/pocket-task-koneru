@@ -16,6 +16,7 @@ import {
   IconButton,
 } from 'react-native-paper';
 import Modal from 'react-native-modal';
+import Swipeout from 'react-native-swipeout';
 
 const AppContent = () => {
   const [visible, setVisible] = useState(false);
@@ -33,21 +34,40 @@ const AppContent = () => {
     );
   };
 
+  const deleteText = (id) => {
+    setSavedTexts(savedTexts.filter((item) => item.id !== id));
+  };
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.container}>
         <FlatList
           data={savedTexts}
-          renderItem={({item}) => (
-            <View style={styles.listItem}>
-              <Text style={styles.listItemText}>{item.text}</Text>
-              <IconButton
-                icon={item.isFavorite ? 'star' : 'star-outline'}
-                onPress={() => toggleFavorite(item.id)}
-              />
-            </View>
-          )}
+          renderItem={({item}) => {
+            const swipeoutButtons = [
+              {
+                text: '削除',
+                backgroundColor: 'red',
+                onPress: () => deleteText(item.id),
+              },
+            ];
+            return (
+              <Swipeout
+                right={swipeoutButtons}
+                autoClose={true}
+                backgroundColor="transparent"
+              >
+                <View style={styles.listItem}>
+                  <Text style={styles.listItemText}>{item.text}</Text>
+                  <IconButton
+                    icon={item.isFavorite ? 'star' : 'star-outline'}
+                    onPress={() => toggleFavorite(item.id)}
+                  />
+                </View>
+              </Swipeout>
+            );
+          }}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.content}
         />
@@ -66,7 +86,7 @@ const AppContent = () => {
           >
             <View style={styles.modalContainer}>
               <TextInput
-                label="タスク"
+                label="テキスト"
                 mode="outlined"
                 style={styles.textInput}
                 onChangeText={(text) => setInputText(text)}
@@ -111,27 +131,25 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: '#204877',
     borderRadius: 50,
-  },
-  modal: {
+    },
+    modal: {
     justifyContent: 'flex-end',
     margin: 0,
-  },
-  modalContainer: {
+    },
+    modalContainer: {
     backgroundColor: 'white',
     padding: 20,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-  },
-  textInput: {
+    },
+    textInput: {
     marginBottom: 20,
-  },
-  listItem: {
+    },
+    listItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
     paddingHorizontal: 20,
-   
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
