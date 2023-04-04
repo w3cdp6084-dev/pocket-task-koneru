@@ -1,9 +1,12 @@
-import React from 'react';
-import {SafeAreaView, StatusBar, StyleSheet, View} from 'react-native';
-import {Text} from 'react-native';
-import {FAB} from 'react-native-paper';
+import React, {useState} from 'react';
+import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
+import {FAB, Portal, Provider, TextInput, Button} from 'react-native-paper';
+import Modal from 'react-native-modal';
 
-const App = () => {
+const AppContent = () => {
+  const [visible, setVisible] = useState(false);
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
   return (
     <>
       <StatusBar barStyle="dark-content" />
@@ -14,8 +17,34 @@ const App = () => {
             style={styles.fab}
             icon="plus"
             color='#fff'
-            onPress={() => console.log('FAB Pressed')}
+            onPress={showModal}
           />
+          <Portal>
+          <Modal
+              isVisible={visible}
+              onBackdropPress={hideModal}
+              style={styles.modal}
+              backdropColor="rgba(0, 0, 0, 0.5)"
+            >
+              <View style={styles.modalContainer}>
+                <TextInput
+                  label="テキスト"
+                  mode="outlined"
+                  style={styles.textInput}
+                  // ここでテキストの状態を管理するためのuseStateフックを使用する
+                />
+                <Button
+                  mode="contained"
+                  onPress={() => {
+                    // ここで保存処理を実行する
+                    hideModal();
+                  }}
+                >
+                  保存
+                </Button>
+              </View>
+            </Modal>
+          </Portal>
         </View>
       </SafeAreaView>
     </>
@@ -39,6 +68,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#204877',
     borderRadius: 50,
   },
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  textInput: {
+    marginBottom: 20,
+  },
+  textInput: {
+    marginBottom: 20,
+  },
 });
 
-export default App;
+export default function App() {
+  return (
+    <Provider>
+      <AppContent />
+    </Provider>
+  );
+}
