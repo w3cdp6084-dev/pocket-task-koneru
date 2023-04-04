@@ -17,21 +17,43 @@ import {
 } from 'react-native-paper';
 import Modal from 'react-native-modal';
 import Swipeout from 'react-native-swipeout';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 
-const AppContent = () => {
+function AppContent() {
+  const [savedTexts, setSavedTexts] = useState([]);
+  const Tab = createBottomTabNavigator();
+  const filteredFavorites = savedTexts.filter((text) => text.isFavorite);
+  return (
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen
+          name="Home"
+          children={() => <HomeScreen savedTexts={savedTexts} setSavedTexts={setSavedTexts} />}
+        />
+      <Tab.Screen name="Favorites">
+        {() => <FavoritesScreen favoriteTexts={filteredFavorites} />}
+      </Tab.Screen>
+        </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
+const HomeScreen = ({savedTexts, setSavedTexts, setFavoriteTexts}) => {
   const [visible, setVisible] = useState(false);
   const [inputText, setInputText] = useState('');
-  const [savedTexts, setSavedTexts] = useState([]);
 
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
 
   const toggleFavorite = (id) => {
-    setSavedTexts(
-      savedTexts.map((item) =>
-        item.id === id ? { ...item, isFavorite: !item.isFavorite } : item,
-      ),
+    const updatedTexts = savedTexts.map((item) =>
+      item.id === id ? { ...item, isFavorite: !item.isFavorite } : item,
     );
+    setSavedTexts(updatedTexts);
+
+    const newFavoriteTexts = updatedTexts.filter((item) => item.isFavorite);
+    setFavoriteTexts(newFavoriteTexts);
   };
 
   const deleteText = (id) => {
@@ -114,6 +136,22 @@ const AppContent = () => {
         </Portal>
       </SafeAreaView>
     </>
+  );
+};
+const FavoritesScreen = ({ favoriteTexts }) => {
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={favoriteTexts}
+        renderItem={({ item }) => (
+          <View style={styles.listItem}>
+            <Text style={styles.listItemText}>{item.text}</Text>
+          </View>
+        )}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.content}
+      />
+    </View>
   );
 };
 
