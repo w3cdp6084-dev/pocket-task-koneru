@@ -5,13 +5,17 @@ import Modal from 'react-native-modal';
 
 const AppContent = () => {
   const [visible, setVisible] = useState(false);
+  const [inputText, setInputText] = useState('');
+  const [savedText, setSavedText] = useState('');
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.container}>
         <View style={styles.content}>
+          <Text>{savedText}</Text>
           <Text>Hello, World!</Text>
           <FAB
             style={styles.fab}
@@ -20,7 +24,7 @@ const AppContent = () => {
             onPress={showModal}
           />
           <Portal>
-          <Modal
+            <Modal
               isVisible={visible}
               onBackdropPress={hideModal}
               style={styles.modal}
@@ -31,12 +35,14 @@ const AppContent = () => {
                   label="テキスト"
                   mode="outlined"
                   style={styles.textInput}
-                  // ここでテキストの状態を管理するためのuseStateフックを使用する
+                  onChangeText={text => setInputText(text)}
+                  value={inputText}
                 />
                 <Button
                   mode="contained"
                   onPress={() => {
-                    // ここで保存処理を実行する
+                    setSavedText(inputText);
+                    setInputText('');
                     hideModal();
                   }}
                 >
@@ -77,9 +83,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-  },
-  textInput: {
-    marginBottom: 20,
   },
   textInput: {
     marginBottom: 20,
