@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from "react";
 import {
   SafeAreaView,
   StatusBar,
@@ -6,7 +6,7 @@ import {
   View,
   Text,
   FlatList,
-} from 'react-native';
+} from "react-native";
 import {
   FAB,
   Portal,
@@ -14,63 +14,94 @@ import {
   TextInput,
   Button,
   IconButton,
-} from 'react-native-paper';
-import Modal from 'react-native-modal';
-import Swipeout from 'react-native-swipeout';
-import {NavigationContainer} from '@react-navigation/native';
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+  Searchbar,
+} from "react-native-paper";
+import Modal from "react-native-modal";
+import Swipeout from "react-native-swipeout";
+import { NavigationContainer } from "@react-navigation/native";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+const TopTab = createMaterialTopTabNavigator();
 
 function AppContent() {
   const [savedTexts, setSavedTexts] = useState([]);
-  const Tab = createBottomTabNavigator();
+  const [searchQuery, setSearchQuery] = useState('');
+  const Tab = createMaterialTopTabNavigator();
   const filteredFavorites = savedTexts.filter((text) => text.isFavorite);
+  const [visible, setVisible] = useState(false);
+
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
+  const [inputText, setInputText] = useState("");
+
+  const onChangeSearch = (query) => setSearchQuery(query);
+
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen
-          name="Home"
-          children={() => <HomeScreen savedTexts={savedTexts} setSavedTexts={setSavedTexts} />}
+      <SafeAreaView>
+        <Searchbar
+          placeholder="検索"
+          onChangeText={onChangeSearch}
+          value={searchQuery}
+          style={styles.searchbar}
         />
-      <Tab.Screen name="Favorites">
-        {() => <FavoritesScreen favoriteTexts={filteredFavorites} />}
-      </Tab.Screen>
-        </Tab.Navigator>
+      </SafeAreaView>
+      <TopTab.Navigator>
+      <TopTab.Screen
+          name="Home"
+          children={() => (
+            <HomeScreen
+              searchQuery={searchQuery}
+              savedTexts={savedTexts}
+              setSavedTexts={setSavedTexts}
+              visible={visible}
+              setVisible={setVisible}
+              hideModal={hideModal}
+              inputText={inputText}
+              setInputText={setInputText}
+            />
+          )}
+        />
+        <TopTab.Screen
+          name="Favorites"
+          children={() => <FavoritesScreen searchQuery={searchQuery} favoriteTexts={filteredFavorites} />}
+        />
+      </TopTab.Navigator>
+      <FAB
+        style={styles.fab}
+        icon="plus"
+        color="#fff"
+        onPress={() => setVisible(true)}
+      />
     </NavigationContainer>
   );
 }
 
-const HomeScreen = ({savedTexts, setSavedTexts, setFavoriteTexts}) => {
-  const [visible, setVisible] = useState(false);
-  const [inputText, setInputText] = useState('');
-
-  const showModal = () => setVisible(true);
-  const hideModal = () => setVisible(false);
-
+const HomeScreen = ({ savedTexts = [], setSavedTexts, setVisible, visible, inputText, setInputText, hideModal, }) => {
+  const [searchQuery, setSearchQuery] = useState('');
   const toggleFavorite = (id) => {
     const updatedTexts = savedTexts.map((item) =>
-      item.id === id ? { ...item, isFavorite: !item.isFavorite } : item,
+      item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
     );
     setSavedTexts(updatedTexts);
-
-    const newFavoriteTexts = updatedTexts.filter((item) => item.isFavorite);
-    setFavoriteTexts(newFavoriteTexts);
   };
 
   const deleteText = (id) => {
     setSavedTexts(savedTexts.filter((item) => item.id !== id));
   };
-
+  const onChangeSearch = (query) => setSearchQuery(query);
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.container}>
         <FlatList
-          data={savedTexts}
-          renderItem={({item}) => {
+            data={savedTexts.filter((item) =>
+    item.text.toLowerCase().includes(searchQuery.toLowerCase()),
+  )}
+          renderItem={({ item }) => {
             const swipeoutButtons = [
               {
-                text: '削除',
-                backgroundColor: 'red',
+                text: "削除",
+                backgroundColor: "red",
                 onPress: () => deleteText(item.id),
               },
             ];
@@ -83,7 +114,7 @@ const HomeScreen = ({savedTexts, setSavedTexts, setFavoriteTexts}) => {
                 <View style={styles.listItem}>
                   <Text style={styles.listItemText}>{item.text}</Text>
                   <IconButton
-                    icon={item.isFavorite ? 'star' : 'star-outline'}
+                    icon={item.isFavorite ? "star" : "star-outline"}
                     onPress={() => toggleFavorite(item.id)}
                   />
                 </View>
@@ -92,12 +123,6 @@ const HomeScreen = ({savedTexts, setSavedTexts, setFavoriteTexts}) => {
           }}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.content}
-        />
-        <FAB
-          style={styles.fab}
-          icon="plus"
-          color="#fff"
-          onPress={showModal}
         />
         <Portal>
           <Modal
@@ -125,7 +150,7 @@ const HomeScreen = ({savedTexts, setSavedTexts, setFavoriteTexts}) => {
                       isFavorite: false,
                     },
                   ]);
-                  setInputText('');
+                  setInputText("");
                   hideModal();
                 }}
               >
@@ -135,10 +160,13 @@ const HomeScreen = ({savedTexts, setSavedTexts, setFavoriteTexts}) => {
           </Modal>
         </Portal>
       </SafeAreaView>
+      
     </>
   );
 };
-const FavoritesScreen = ({ favoriteTexts }) => {
+
+const FavoritesScreen = ({ savedTexts = [] }) => {
+  const favoriteTexts = savedTexts.filter((text) => text.isFavorite);
   return (
     <View style={styles.container}>
       <FlatList
@@ -159,48 +187,51 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  searchbar: {
+    margin: 10,
+  },
   content: {
     flexGrow: 1,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     margin: 16,
     right: 0,
     bottom: 0,
-    backgroundColor: '#204877',
+    backgroundColor: "#204877",
     borderRadius: 50,
-    },
-    modal: {
-    justifyContent: 'flex-end',
+  },
+  modal: {
+    justifyContent: "flex-end",
     margin: 0,
-    },
-    modalContainer: {
-    backgroundColor: 'white',
+  },
+  modalContainer: {
+    backgroundColor: "white",
     padding: 20,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    },
-    textInput: {
+  },
+  textInput: {
     marginBottom: 20,
-    },
-    listItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  },
+  listItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    },
-    listItemText: {
+    borderBottomColor: "#ccc",
+  },
+  listItemText: {
     fontSize: 16,
-    },
-    });
-    
-    export default function App() {
-    return (
+  },
+});
+
+export default function App() {
+  return (
     <Provider>
-    <AppContent />
+      <AppContent />
     </Provider>
-    );
-    }
+  );
+}
